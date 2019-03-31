@@ -10,7 +10,7 @@
 fp_urlmap urlMapping() {
     fp_urlmap node = NULL;
     // 添加url
-    node = addNode(node, "/home", home);
+    node = addNode(node, "/", home);
     return node;
 }
 
