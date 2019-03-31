@@ -8,9 +8,5 @@
 
 int main(int argc, char *argv[]) {
     startConnet();
-//    char test[] = "gfdgd";
-//    char *hah = "dfsf";
-//    strcat(test, hah);
-//    printf("%s\n", test);
     return 0;
 }

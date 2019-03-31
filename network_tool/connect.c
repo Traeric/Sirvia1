@@ -12,7 +12,7 @@
 #include "../utils/fileImport.h"
 #include "../urls/urls.h"
 
-#define PORT 8081        // 服务器监听端口
+#define PORT 4140        // 服务器监听端口
 #define MAX_QUEUE 20     // 待连接的队列最大数
 #define MAX_LEN 20480    // 接收浏览器数据
 
