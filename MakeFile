@@ -1,0 +1,7 @@
+all: httpd
+
+httpd: main.c
+	gcc -o http main.c network_tool/connect.c utils/map.c utils/fileImport.c utils/stringUtil.c urls/urls.c handler/handler.c
+
+clean:
+	rm http
