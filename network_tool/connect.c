@@ -97,7 +97,7 @@ void startConnet() {
 
         // 执行指定函数
         analysisPath(request, client_socket_fp);
-
+        
         close(client_socket_fp);
     }
     close(server_socket_fp);
