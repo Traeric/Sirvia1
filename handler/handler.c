@@ -4,10 +4,10 @@
  */
 #include <stdlib.h>
 #include <stdio.h>
-#include "../utils/map.h"
+#include "../utils/cJSON.h"
 
 
-char *home(p_map request) {
+char *home(cJSON *request) {
     char *test = "hello world!";
     printf("%s\n", test);
     return "index.html";

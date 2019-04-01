@@ -11,16 +11,16 @@
 #include "../utils/stringUtil.h"
 #include "../utils/fileImport.h"
 #include "../urls/urls.h"
-#include "../utils/cJSON.h"
-#include "../utils/regx.h"
 
 #define PORT 4140        // 服务器监听端口
 #define MAX_QUEUE 20     // 待连接的队列最大数
 #define MAX_LEN 20480    // 接收浏览器数据
 
-void static analysisRequest(char *, cJSON *);
+p_map static analysisRequest(char *, p_map);
 
-void static analysisPath(cJSON *, int);
+void static send_to_browser(int, char *, char *);
+
+void static analysisPath(p_map, int);
 
 /**
  * 开始启动socket
@@ -90,13 +90,16 @@ void startConnet() {
          *     共读多少个字节
          */
         read(client_socket_fp, buff, MAX_LEN);
-
         // 分析请求信息
-        cJSON *request = cJSON_CreateObject();  // 创建一个json对象
-        analysisRequest(buff, request);   // 解析参数，获取前端传来的参数已经路径等信息
-
+        p_map request = (p_map) malloc(sizeof(map));
+        request = analysisRequest(buff, request);
+//        while (request != NULL) {
+//            printf("%s: %s\n", request->key, request->value);
+//            request = request->next;
+//        }
         // 执行指定函数
         analysisPath(request, client_socket_fp);
+        free(request);
 
         close(client_socket_fp);
     }
@@ -109,62 +112,74 @@ void startConnet() {
  * @param request
  * @return
  */
-void static analysisRequest(char *str, cJSON *request) {
-    char *p = strtok(str, "\r\n"); // 获取第一行的数据，提取出请求方式跟请求路径
-    // 处理post请求的参数
-    char *postStr = strtok(NULL, "\0");
-
+p_map static analysisRequest(char *str, p_map request) {
+    char *p;
+    // 获取每一行的数据
+    p = strtok(str, "\r\n"); // 获取第一行的数据，提取出请求方式跟请求路径
     // 对第一行的数据进行分割
     char *item = strtok(p, " ");   // 按照空格进行分隔
-    cJSON_AddItemToObject(request, "method", cJSON_CreateString(item));  // 将请求方式保存
+    request = addItem(request, "method", item);  // 将请求方式保存
     item = strtok(NULL, " ");    // 再次分隔，分割出路径
-    cJSON_AddItemToObject(request, "path", cJSON_CreateString(item));
+    request = addItem(request, "path", item);
     // 对post和get方式进行分别解析
+    p_map dict = NULL;
+    p_map method = findItem(request, "method");
     char *r;
     // get方式
-    if (strcmp("GET", cJSON_GetObjectItem(request, "method")->valuestring) == 0) {
+    if (strcmp("GET", method->value) == 0) {
         // 解析url
-        char *buff = cJSON_GetObjectItem(request, "path")->valuestring;
+        char *buff = findItem(request, "path")->value;
         r = strsep(&buff, "?");
-        // 重新设置path，将url跟参数分开
-        cJSON_GetObjectItem(request, "path")->valuestring = r;
+        findItem(request, "path")->value = r;
         char *arg = strsep(&buff, "?"); // 获取到url后面的参数
 
         char *argItem = strsep(&arg, "&");  // 拿到url后面的参数
-        // 设置请求参数的json放在根节点的args下
-        cJSON *args = cJSON_CreateObject();
-        cJSON_AddItemToObject(request, "args", args);
         while (argItem != NULL) {
             // 对name=eric解析
             char *k = strsep(&argItem, "=");
             char *v = strsep(&argItem, "=");
-            cJSON_AddItemToObject(args, k, cJSON_CreateString(v));
-            argItem = strsep(&arg, "&");
+            request = addItem(request, k, v);
+            argItem = strsep(&arg, "&");  // r = 'name=eric'
         }
-    } else if (strcmp("POST", cJSON_GetObjectItem(request, "method")->valuestring) == 0) {
-        // 解析POST请求
-        char *pattern = "\\{.+\\}";  // 正则表达式
-        char *argJsonStr = matchRegxOne(pattern, postStr);   // 参数对应的字符串
-        // 转换成cJSON格式
-        cJSON *args = cJSON_Parse(argJsonStr);
-        free(argJsonStr);  // 在matchRegxOne中申请的空间在此释放掉
-        cJSON_AddItemToObject(request, "args", args);
     }
+    // 解析POST请求
+    if (strcmp("POST", method->value) == 0) {
+        strsep(&str, "\r\n\r\n");
+        char *args = strsep(&str, "\r\n\r\n");   // 获取POST参数
+        printf("==============");
+    }
+    return request;
 }
+
+/**
+ * 向浏览器推送消息
+ * @param socket_fp
+ * @param content
+ * @param header,
+ */
+void static send_to_browser(int socket_fp, char *content, char *header) {
+    /**
+     * 向浏览器写入内容
+     * 参数：
+     *     文件描述符，往哪个文件写，这里填写accept返回的文件句柄
+     *     内容的首地址
+     *     共读多少个字节
+     */
+    char status[] = "HTTP/1.0 200 OK\r\n";
+    write(socket_fp, status, sizeof(status));
+    write(socket_fp, header, sizeof(char) * strlen(header));
+    write(socket_fp, content, sizeof(char) * strlen(content));
+}
+
 
 /**
  * 解析请求路径
  * @param path
  * @param socket_fp
  */
-void static analysisPath(cJSON *request, int socket_fp) {
-    char *path = cJSON_GetObjectItem(request, "path")->valuestring;
+void static analysisPath(p_map request, int socket_fp) {
+    char *path = findItem(request, "path")->value;
     // 分析是对服务器资源请求还是其他请求
-    char *content;   // 文件内容
-    int fileSize;   // 文件长度
-    int length = 0;   // 推送的长度
-    char *p_bufs = NULL;  // 最终推送到浏览器的数据
-
     if (endsWith(path, ".jpg") || endsWith(path, ".jpeg") || endsWith(path, ".png")
         || endsWith(path, ".gif") || endsWith(path, ".xml") || endsWith(path, ".ico")
         || endsWith(path, ".js")) {
@@ -173,39 +188,66 @@ void static analysisPath(cJSON *request, int socket_fp) {
         char filePath[] = "./statics";
         strcat(filePath, path);
         // 读取文件
-        fileSize = file_size(filePath);
-        content = (char *) malloc(sizeof(char) * fileSize);
+        int fileSize = file_size(filePath);
+        char *content = (char *) malloc(sizeof(char) * fileSize);
         int ret = readImage(content, filePath);
         // 未读取到文件
         if (ret == -1) {
             return;
         }
 
+        // 返回浏览器的类型
+        char *p_bufs = NULL;
+        int tlen = 0;
         p_bufs = (char *) malloc(sizeof(char) * (fileSize + 1024));
         if (NULL == p_bufs) {
             printf("malloc error!\n");
             return;
         }
-        // 返回给浏览器的类型
-        char *type = "image/jpeg";
         if (endsWith(path, ".jpg") || endsWith(path, ".jpeg")) {
-            type = "image/jpeg";
+            tlen = sprintf(p_bufs, "HTTP/1.1 200 OK\r\n"
+                                   "Server: hsoap/2.8\r\n"
+                                   "Content-Type: image/jpeg\r\n"
+                                   "Content-Length: %d\r\n"
+                                   "Connection: close\r\n\r\n", fileSize);
         } else if (endsWith(path, ".png")) {
-            type = "image/png";
+            tlen = sprintf(p_bufs, "HTTP/1.1 200 OK\r\n"
+                                   "Server: hsoap/2.8\r\n"
+                                   "Content-Type: image/png\r\n"
+                                   "Content-Length: %d\r\n"
+                                   "Connection: close\r\n\r\n", fileSize);
         } else if (endsWith(path, ".gif")) {
-            type = "image/gif";
+            tlen = sprintf(p_bufs, "HTTP/1.1 200 OK\r\n"
+                                   "Server: hsoap/2.8\r\n"
+                                   "Content-Type: image/gif\r\n"
+                                   "Content-Length: %d\r\n"
+                                   "Connection: close\r\n\r\n", fileSize);
         } else if (endsWith(path, ".xml")) {
-            type = "text/xml";
+            tlen = sprintf(p_bufs, "HTTP/1.1 200 OK\r\n"
+                                   "Server: hsoap/2.8\r\n"
+                                   "Content-Type: text/xml\r\n"
+                                   "Content-Length: %d\r\n"
+                                   "Connection: close\r\n\r\n", fileSize);
         } else if (endsWith(path, ".ico")) {
-            type = "image/x-icon";
+            tlen = sprintf(p_bufs, "HTTP/1.1 200 OK\r\n"
+                                   "Server: hsoap/2.8\r\n"
+                                   "Content-Type: image/x-icon\r\n"
+                                   "Content-Length: %d\r\n"
+                                   "Connection: close\r\n\r\n", fileSize);
         } else if (endsWith(path, ".js")) {
-            type = "application/javascript";
+            tlen = sprintf(p_bufs, "HTTP/1.1 200 OK\r\n"
+                                   "Server: hsoap/2.8\r\n"
+                                   "Content-Type: application/javascript\r\n"
+                                   "Content-Length: %d\r\n"
+                                   "Connection: close\r\n\r\n", fileSize);
         }
-        length = sprintf(p_bufs, "HTTP/1.1 200 OK\r\n"
-                                 "Server: hsoap/2.8\r\n"
-                                 "Content-Type: %s\r\n"
-                                 "Content-Length: %d\r\n"
-                                 "Connection: close\r\n\r\n", type, fileSize);
+
+        memcpy(p_bufs + tlen, content, (size_t) fileSize);
+        tlen += fileSize;
+        send(socket_fp, p_bufs, (size_t) tlen, 0);
+
+        free(p_bufs);
+        free(content);
     } else {
         // 其他请求，类似于/home
         // 如果是其他请求，就去urls.c中匹配对应的方法进行执行
@@ -214,35 +256,23 @@ void static analysisPath(cJSON *request, int socket_fp) {
         if (findNode(node, path) == NULL) {
             return;
         }
-        char *(*func)(cJSON *) = findNode(node, path)->value;
+        char *(*func)(p_map) = findNode(node, path)->value;
         // 执行方法，获取返回值
         char *filePath = func(request);
         // 进行路径拼接
         char temp[] = "./templates/";
         strcat(temp, filePath);
         // 读取文件
-        fileSize = file_size(temp);
-        content = (char *) malloc(sizeof(char) * fileSize);
+        int fileSize = file_size(temp);
+        char *content = (char *) malloc(sizeof(char) * fileSize);
         int ret = readImage(content, temp);   // 读取文件
         // 如果没有读取到文件
         if (ret == -1) {
             return;
         }
-        p_bufs = (char *) malloc(sizeof(char) * (fileSize + 1024));
-        length = sprintf(p_bufs, "HTTP/1.1 200 OK\r\n"
-                               "Server: hsoap/2.8\r\n"
-                               "Content-Type: text/html\r\n"
-                               "Content-Length: %d\r\n"
-                               "Connection: close\r\n\r\n", fileSize);
-        // 在这里面对html文件中的数据进行替换
-
+        char *header = "Server: DWBServer\r\nContent-Type: text/html;charset=utf-8\r\n\r\n";
+        send_to_browser(socket_fp, content, header);
+        free(content);
     }
-
-    memcpy(p_bufs + length, content, (size_t) fileSize);
-    length += fileSize;
-    send(socket_fp, p_bufs, (size_t) length, 0);
-
-    free(p_bufs);
-    free(content);
 }
 

@@ -5,6 +5,8 @@
 #ifndef HANDLER_H_
 #define HANDLER_H_
 
-char *home(p_map request);
+#include "../utils/cJSON.h"
+
+char *home(cJSON *request);
 
 #endif

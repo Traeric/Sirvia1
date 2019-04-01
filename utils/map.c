@@ -51,7 +51,7 @@ p_map findItem(p_map dict, char key[]) {
  * @param value
  * @return
  */
-fp_urlmap addNode(fp_urlmap node, char *key, char *(*value)(p_map)) {
+fp_urlmap addNode(fp_urlmap node, char *key, char *(*value)(cJSON *)) {
     // 初始化一个结构体
     fp_urlmap item = NULL;
     item = (fp_urlmap) malloc(sizeof(urlmap));
