@@ -8,6 +8,7 @@
 
 int endsWith(char *targetStr, char *matchStr);
 int calcLen(const char *str);
+char *replaceStrFromToEnd(int, int, char *, char *);
 
 #endif
 

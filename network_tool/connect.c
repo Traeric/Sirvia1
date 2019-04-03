@@ -13,6 +13,7 @@
 #include "../urls/urls.h"
 #include "../utils/cJSON.h"
 #include "../utils/regx.h"
+#include "../utils/templateSplite.h"
 
 #define PORT 4140        // 服务器监听端口
 #define MAX_QUEUE 20     // 待连接的队列最大数
@@ -236,7 +237,7 @@ void static analysisPath(cJSON *request, int socket_fp) {
                                "Content-Length: %d\r\n"
                                "Connection: close\r\n\r\n", fileSize);
         // 在这里面对html文件中的数据进行替换
-
+        content = handlerTemplate(content, resultData);   // 传入用户添加的变量
     }
 
     memcpy(p_bufs + length, content, (size_t) fileSize);
