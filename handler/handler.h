@@ -7,6 +7,6 @@
 
 #include "../utils/cJSON.h"
 
-char *home(cJSON *request);
+cJSON *home(cJSON *request);
 
 #endif

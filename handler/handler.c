@@ -7,8 +7,10 @@
 #include "../utils/cJSON.h"
 
 
-char *home(cJSON *request) {
+cJSON *home(cJSON *request) {
     char *test = "hello world!";
     printf("%s\n", test);
-    return "index.html";
+    cJSON *result = cJSON_CreateObject();
+    cJSON_AddItemToObject(result, "target", cJSON_CreateString("index.html"));
+    return result;
 }
