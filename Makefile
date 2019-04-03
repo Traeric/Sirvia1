@@ -1,4 +1,4 @@
-sirvia: sirvia.o connect.o map.o fileImport.o stringUtil.o urls.o handler.o cJSON.o regx.o
+sirvia: sirvia.o connect.o map.o fileImport.o stringUtil.o urls.o handler.o cJSON.o regx.o templateSplite.o
 sirvia.o: sirvia.c
 	gcc -c sirvia.c -o sirvia.o
 connect.o: network_tool/connect.c
@@ -17,6 +17,8 @@ cJSON.o: utils/cJSON.c
 	gcc -c utils/cJSON.c -o cJSON.o -lm
 regx.o: utils/regx.c
 	gcc -c utils/regx.c -o regx.o
+templateSplite.o: utils/templateSplite.c
+	gcc -c utils/templateSplite.c -o templateSplite.o
 
 clean:
 	rm -rf *.o

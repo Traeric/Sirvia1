@@ -3,6 +3,8 @@
  * Date: 2019-03-31
  */
 #include <string.h>
+#include <stdio.h>
+#include <stdlib.h>
 
 
 /**
@@ -32,5 +34,25 @@ int calcLen(const char *str) {
     int len = 0;
     while (*(str + len++) != '\0');
     return --len;   // 最后会多加一下，在这里减掉
+}
+
+/**
+ * 替换中间的字符串
+ * @param start
+ * @param end
+ * @param target
+ * @param replace
+ * @return
+ */
+char *replaceStrFromToEnd(int start, int end, char *target, char *replace) {
+    char *previous = (char *) malloc(sizeof(char) * start);
+    memcpy(previous, target, (size_t) start);
+    char *suffix = target + end;
+
+    int len = (int) (strlen(target) - (end - start) + strlen(replace));
+    char *res = (char *) malloc(sizeof(char) * len);
+    sprintf(res, "%s%s%s", previous, replace, suffix);
+    free(previous);
+    return res;
 }
 
