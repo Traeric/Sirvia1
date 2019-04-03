@@ -214,9 +214,10 @@ void static analysisPath(cJSON *request, int socket_fp) {
         if (findNode(node, path) == NULL) {
             return;
         }
-        char *(*func)(cJSON *) = findNode(node, path)->value;
+        cJSON *(*func)(cJSON *) = findNode(node, path)->value;
         // 执行方法，获取返回值
-        char *filePath = func(request);
+        cJSON *resultData = func(request);
+        char *filePath = cJSON_GetObjectItem(resultData, "target")->valuestring;
         // 进行路径拼接
         char temp[] = "./templates/";
         strcat(temp, filePath);
