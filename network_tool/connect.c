@@ -19,9 +19,9 @@
 #define MAX_QUEUE 20     // 待连接的队列最大数
 #define MAX_LEN 20480    // 接收浏览器数据
 
-void static analysisRequest(char *, cJSON *);
+static void analysisRequest(char *, cJSON *);
 
-void static analysisPath(cJSON *, int);
+static void analysisPath(cJSON *, int);
 
 /**
  * 开始启动socket
@@ -110,7 +110,7 @@ void startConnet() {
  * @param request
  * @return
  */
-void static analysisRequest(char *str, cJSON *request) {
+static void analysisRequest(char *str, cJSON *request) {
     char *p = strtok(str, "\r\n"); // 获取第一行的数据，提取出请求方式跟请求路径
     // 处理post请求的参数
     char *postStr = strtok(NULL, "\0");
@@ -158,7 +158,7 @@ void static analysisRequest(char *str, cJSON *request) {
  * @param path
  * @param socket_fp
  */
-void static analysisPath(cJSON *request, int socket_fp) {
+static void analysisPath(cJSON *request, int socket_fp) {
     char *path = cJSON_GetObjectItem(request, "path")->valuestring;
     // 分析是对服务器资源请求还是其他请求
     char *content;   // 文件内容

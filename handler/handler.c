@@ -13,6 +13,9 @@ cJSON *home(cJSON *request) {
         cJSON_AddItemToObject(result, "target", cJSON_CreateString("index.html"));
 
         cJSON_AddItemToObject(result, "name", cJSON_CreateString("Sirvia"));
+
+        char *hobby[3] = {"basketball", "volley ball", "base ball"};
+        cJSON_AddItemToObject(result, "hobby", cJSON_CreateStringArray((const char **) hobby, 3));
         return result;
     } else {
         return NULL;
