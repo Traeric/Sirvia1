@@ -7,8 +7,8 @@
 #define STRINGUTIL_H_
 
 int endsWith(char *targetStr, char *matchStr);
-int calcLen(const char *str);
 char *replaceStrFromToEnd(int, int, char *, char *);
+int contains(char *target, const char *match);
 
 #endif
 
