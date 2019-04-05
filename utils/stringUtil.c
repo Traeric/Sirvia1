@@ -25,16 +25,6 @@ int endsWith(char *targetStr, char *matchStr) {
     return 1;
 }
 
-/**
- * 计算一个指针指向的字符串的长度
- * @param str
- * @return
- */
-int calcLen(const char *str) {
-    int len = 0;
-    while (*(str + len++) != '\0');
-    return --len;   // 最后会多加一下，在这里减掉
-}
 
 /**
  * 替换中间的字符串
@@ -57,3 +47,27 @@ char *replaceStrFromToEnd(int start, int end, char *target, char *replace) {
     return res;
 }
 
+
+/**
+ * 检测某个字符串中是否包含某个字符
+ * @param target
+ * @param match
+ * @return
+ */
+int contains(char *target, const char *match) {
+    char first = *(match++);
+    // 匹配第一个字符在目标字符串中的起始位置
+    while (target++) {
+        if (*target == first) {
+            // 如果已经匹配到了就继续匹配下面的字符
+            for (; *match != '\0'; match++, target++) {
+                if (*match != *target) {
+                    // 不相等
+                    return 0;
+                }
+            }
+            return 1;
+        }
+    }
+    return 0;
+}
