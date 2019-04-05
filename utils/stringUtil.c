@@ -50,8 +50,9 @@ char *replaceStrFromToEnd(int start, int end, char *target, char *replace) {
     char *suffix = target + end;
 
     int len = (int) (strlen(target) - (end - start) + strlen(replace));
-    char *res = (char *) malloc(sizeof(char) * len);
+    char *res = (char *) malloc(sizeof(char) * (len + 1024));
     sprintf(res, "%s%s%s", previous, replace, suffix);
+
     free(previous);
     return res;
 }

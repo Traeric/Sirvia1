@@ -58,9 +58,8 @@ char *replaceForFunc(char *replaceString, cJSON *args) {
         char *pattern = "\\{zw \\w+ wz\\}";
         // 每一次循环替换的结果
         char *resultItem = replaceStr(pattern, content, arg, replaceVariableFunc);
-        printf("%s\n", resultItem);
         result = (char *) realloc(result, sizeof(char) * (strlen(result) + strlen(resultItem)));
-        sprintf(result, "%s%s", result, resultItem);   // 将每一次循环的结果接到结果后面
+        memcpy(result + strlen(result), resultItem, strlen(resultItem));
     }
     return result;
 }
