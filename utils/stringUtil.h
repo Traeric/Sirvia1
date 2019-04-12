@@ -8,7 +8,8 @@
 
 int endsWith(char *targetStr, char *matchStr);
 char *replaceStrFromToEnd(int, int, char *, char *);
-int contains(char *target, const char *match);
+int contains(char *target, char match);
+char *trim(char *target);
 
 #endif
 
