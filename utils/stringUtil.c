@@ -49,16 +49,16 @@ char *replaceStrFromToEnd(int start, int end, char *target, char *replace) {
 
 
 /**
- * 检测某个字符串中是否包含某个字符
+ * 检测某个字符串中是否包含某个字符串
  * @param target
  * @param match
  * @return
  */
-int contains(char *target, const char *match) {
+int containStr(char *target, const char *match) {
     char first = *(match++);
     // 匹配第一个字符在目标字符串中的起始位置
-    while (target++) {
-        if (*target == first) {
+    while (target) {
+        if (*target++ == first) {
             // 如果已经匹配到了就继续匹配下面的字符
             for (; *match != '\0'; match++, target++) {
                 if (*match != *target) {
@@ -71,3 +71,43 @@ int contains(char *target, const char *match) {
     }
     return 0;
 }
+
+/**
+ * 检测某个字符串中是否包含某个字符
+ * @param target
+ * @param match
+ * @return
+ */
+int contains(char *target, char match) {
+    while (target) {
+        printf("%c", *target);
+        if (*target++ == match) {
+            return 1;
+        }
+    }
+    return 0;
+}
+
+
+/**
+ * 将字符串首尾的空格
+ * @param target
+ * @return
+ */
+char *trim(char *target) {
+    int i = 0;
+    int j = (int) (strlen(target) - 1);
+    // 删除头部空格
+    while (target[i] == 0x20) {
+        i++;
+    }
+    // 删除尾部空格
+    while (target[j] == 0x20) {
+        j--;
+    }
+    char *strOut = (char *) malloc(sizeof(char) * (j - i + 1));
+    strncpy(strOut, target + i, (size_t) (j - i + 1));
+    strOut[j - i + 1] = '\0';
+    return strOut;
+}
+

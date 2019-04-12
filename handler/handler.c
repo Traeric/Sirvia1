@@ -16,6 +16,15 @@ cJSON *home(cJSON *request) {
 
         char *hobby[3] = {"basketball", "volley ball", "base ball"};
         cJSON_AddItemToObject(result, "hobby", cJSON_CreateStringArray((const char **) hobby, 3));
+
+
+        cJSON *t = cJSON_CreateObject();
+        cJSON_AddItemToObject(t, "111", cJSON_CreateString("222"));
+        cJSON_AddItemToObject(t, "333", cJSON_CreateString("444"));
+        cJSON_AddItemToObject(t, "555", cJSON_CreateString("666"));
+        cJSON_AddItemToObject(t, "777", cJSON_CreateString("888"));
+
+        cJSON_AddItemToObject(result, "test", t);
         return result;
     } else {
         return NULL;
